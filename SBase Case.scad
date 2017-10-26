@@ -11,13 +11,16 @@ board_thickness = 3;
 
 //case configuration
 board_extra_space = 2; //amount of space around the board before the walls start
+board_extra_z = 10;
 case_thickness = 3;
 mount_under_clearance = 5; //clearance between the bottom of board and base
 mount_pillar_size = 10;
 include_vents = 1;
 vent_count = 4;
 vent_edge_space = 10; //clearance between inside wall and vent position.
-
+thermistor_slot_z = 5;
+thermistor_slot_length = 30;
+power_slot_z = 15;
 
 //start
 //uses
@@ -26,8 +29,8 @@ use <BOSL/shapes.scad>;
 $fs = 0.05;
 
 box_outer_x = board_length + 2*board_extra_space + 2*case_thickness;
-box_outer_y = board_width + 2*board_extra_space + 2*case_thickness;
-box_outer_z = case_thickness*2 + mount_under_clearance+board_thickness+board_height+board_extra_space;
+box_outer_y = board_width + 2*board_extra_space + 2*case_thickness+50;
+box_outer_z = case_thickness*2 + mount_under_clearance+board_thickness+board_height+board_extra_z;
 vent_width = (board_width-vent_edge_space)/(2*vent_count);
 module mount_pillar(height=mount_under_clearance){
     cylinder(r=(mount_diameter+mount_edge_space+board_extra_space)/2,h=height);
@@ -90,17 +93,23 @@ module top_box() {
       line_of(p1=[case_thickness+board_extra_space+vent_edge_space/2,case_thickness+board_extra_space+vent_edge_space,0], p2=[case_thickness+board_extra_space+vent_edge_space/2,board_width+case_thickness-vent_edge_space-vent_width,0], n=vent_count) vent(vent_width);
       }
       translate([case_thickness+board_extra_space,case_thickness+board_extra_space,case_thickness]) {
-        place_copies([[mount_edge_space,mount_edge_space,0],[mount_edge_space,-mount_edge_space+board_width,0],[-mount_edge_space+board_length,mount_edge_space,0],[-mount_edge_space+board_length,-mount_edge_space+board_width,0]]) mount_pillar(board_height+board_extra_space);
+        place_copies([[mount_edge_space,mount_edge_space,0],[mount_edge_space,-mount_edge_space+board_width,0],[-mount_edge_space+board_length,mount_edge_space,0],[-mount_edge_space+board_length,-mount_edge_space+board_width,0]]) mount_pillar(board_height+board_extra_z);
       }
     }
+    //long cutout for thermistor cables.
+    translate([case_thickness+board_extra_space+15,-1,case_thickness])cube([thermistor_slot_length,case_thickness+2,mount_under_clearance+board_thickness+thermistor_slot_z]);
+    translate([case_thickness+board_extra_space+15+board_length/2,-1,0.1+box_outer_z/2])cube([board_length/2-30,case_thickness+2,mount_under_clearance+board_thickness+power_slot_z]);
+    //bolt holes
     translate([case_thickness+board_extra_space,case_thickness+board_extra_space,-1]) {
       place_copies([[mount_edge_space,mount_edge_space,0],[mount_edge_space,-mount_edge_space+board_width,0],[-mount_edge_space+board_length,mount_edge_space,0],[-mount_edge_space+board_length,-mount_edge_space+board_width,0]]) cylinder(r=2,h=box_outer_z+10,center=false);
     }
+    //head recess
     translate([case_thickness+board_extra_space,case_thickness+board_extra_space,-0.1]) {
       place_copies([[mount_edge_space,mount_edge_space,0],[mount_edge_space,-mount_edge_space+board_width,0],[-mount_edge_space+board_length,mount_edge_space,0],[-mount_edge_space+board_length,-mount_edge_space+board_width,0]]) cylinder(r=4,h=case_thickness/2,center=false);
     }
   }
 }
+/*translate([-box_outer_x-30,0,0]) */
 top_box();
 /*base_plate();
 translate([0,box_outer_y/2-(20+box_outer_y/8),0])rotate([0,0,90])mount_pair(box_outer_y/4);
